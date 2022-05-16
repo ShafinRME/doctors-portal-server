@@ -30,15 +30,15 @@ async function run() {
         });
 
         app.get('/available', async (req, res) => {
-            const date = req.query.date || 'May 15, 2022';
+            const date = req.query.date;
             const services = await serviceCollection.find().toArray();
             const query = { date: date };
             const bookings = await bookingCollection.find(query).toArray();
             services.forEach(service => {
-                const serviceBooking = bookings.filter(b => b.treatment === service.name);
-                const booked = serviceBooking.map(s => s.slot);
-                const available = service.slots.filter(s => !booked.includes(s));
-                service.available = available;
+                const serviceBookings = bookings.filter(book => book.treatment === service.name);
+                const booked = serviceBookings.map(book => book.slot);
+                const available = service.slots.filter(slot => !booked.includes(slot));
+                service.slots = available;
             })
             res.send(services);
         })
@@ -51,6 +51,13 @@ async function run() {
         * app.patch('/booking/:id) //update a specific booking
         * app.delete('/booking/:id) // specific delete booking
         */
+
+        app.get('/booking', async (req, res) => {
+            const patient = req.query.patient;
+            const query = { patient: patient };
+            const bookings = await bookingCollection.find(query).toArray();
+            res.send(bookings);
+        })
 
         app.post('/booking', async (req, res) => {
             const booking = req.body;
